@@ -2,16 +2,17 @@ from tkinter import *
 from tkinter import messagebox
 from customtkinter import * 
 from PIL import *
+from CTkListbox import *
 import video_library as lib
 import font_manager as fonts
-
+import pywhatkit
 #==================MISC Functions==================#
 def set_text(text_area, content):
     text_area.delete("1.0", END)
-    text_area.insert(1.0, content)
+    text_area.insert("1.0", content)
     
 def add_text(text_area, content):
-    text_area.insert(1.0, content + "\n")  
+    text_area.insert("1.0", content + "\n")  
 #================Error Message================#
 def errorID():
     messagebox.showwarning(title="Invlid ID", message="Please enter a valid ID")
@@ -29,6 +30,7 @@ class CreatePlaylist():
             #========Video ID List========#
             self.videoplaylist=[]
             self.dfplaylist = 0
+            self.showlist = lib.list_all()
             #===================================GUI===================================#
 
             #===============Display Area===============#
@@ -64,10 +66,10 @@ class CreatePlaylist():
             self.playvideo = CTkButton(window,text="Play Video",corner_radius=32,fg_color="#4158D0",hover_color="#C850C0",border_color="#FFCC70",border_width=2,command=self.PlayVid)
             self.playvideo.grid(row=3, column=5, padx=8, pady=10)
             
-            self.next = CTkButton(window,text=">>>",corner_radius=32,width=30,fg_color="#4158D0",hover_color="#C850C0",border_color="#FFCC70",border_width=2,command=lambda:[self.Next(),self.PlayVid()])
+            self.next = CTkButton(window,text=">>>",corner_radius=32,width=30,fg_color="#4158D0",hover_color="#C850C0",border_color="#FFCC70",border_width=2,command=self.Next)
             self.next.grid(row=3, column=6, padx=8, pady=10)
             
-            self.prev = CTkButton(window,text="<<<",corner_radius=32,width=30,fg_color="#4158D0",hover_color="#C850C0",border_color="#FFCC70",border_width=2,command=lambda:[self.Prev(),self.PlayVid()])
+            self.prev = CTkButton(window,text="<<<",corner_radius=32,width=30,fg_color="#4158D0",hover_color="#C850C0",border_color="#FFCC70",border_width=2,command=self.Prev)
             self.prev.grid(row=3, column=6, padx=8,sticky= "W", pady=10)
             
             self.changebutton = CTkButton(window, text="Change Light/Dark mode",corner_radius=32,fg_color="#4158D0",hover_color="#C850C0",border_color="#FFCC70",border_width=2,command=self.changemode)
@@ -94,6 +96,9 @@ class CreatePlaylist():
             key = self.ID_input.get()
             name = lib.get_name(key)
             return(key,name)
+        def GetUrl(self,key):
+            url = lib.get_url(key)
+            return url
             
         #==========Add a video to the playlist==========#
         def add_btn_clicked(self):
@@ -108,7 +113,7 @@ class CreatePlaylist():
                     errorDUP()
             else:
                 errorID()
-            self.status.configure(text="Status: Added a video")    
+            self.status.configure(text="Status: Added a video")       
             
         #===============Clear PLaylist===============#
         def clear_btn_clicked(self):
@@ -136,11 +141,13 @@ class CreatePlaylist():
         def PlayVid(self):
                 if len(self.videoplaylist) == 0:
                     errorNull()
-                else:
-                    key = self.videoplaylist[self.dfplaylist]
-                    lib.increment_play_count(key)
-                    name = lib.get_name(key)
-                    self.DisplayInfo(key,name)
+                else:   
+                        key = self.videoplaylist[self.dfplaylist]
+                        url = self.GetUrl(key)
+                        lib.increment_play_count(key)
+                        name = lib.get_name(key)
+                        pywhatkit.playonyt(url)
+                        self.DisplayInfo(key,name)
                 self.status.configure(text="Status: Playing Video")
                 
         #===========Choose a song===========#    
@@ -149,12 +156,18 @@ class CreatePlaylist():
                 self.dfplaylist += 1
             elif self.dfplaylist > len(self.videoplaylist)-1:
                 self.dfplaylist = len(self.videoplaylist)-1
+            key = self.videoplaylist[self.dfplaylist]
+            name = lib.get_name(key)
+            self.DisplayInfo(key,name)
             self.status.configure(text="Status: Playing the next video")
         def Prev(self):
             if self.dfplaylist != 0:
                 self.dfplaylist -= 1
             elif self.dfplaylist < 0:
                 self.dfplaylist =0
+            key = self.videoplaylist[self.dfplaylist]
+            name = lib.get_name(key)
+            self.DisplayInfo(key,name)
             self.status.configure(text="Status: Playing the next video")
             
     #================Change Light and Dark mode===================#
